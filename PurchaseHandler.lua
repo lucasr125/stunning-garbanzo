@@ -1,3 +1,5 @@
+local MarketplaceService = game:GetService("MarketplaceService")
+
 local Objects = {}
 local TeamColor = script.Parent.TeamColor.Value
 local Settings = require(script.Parent.Parent.Parent.Settings)
@@ -5,7 +7,6 @@ local Money = script.Parent.CurrencyToCollect
 local Debris = game:GetService('Debris')
 local Stealing = Settings.StealSettings
 local CanSteal = true -- don't change or else you won't be able to steal currency
-local tycoonOwner = nil
 
 script.Parent.Essentials.Spawn.TeamColor = TeamColor
 script.Parent.Essentials.Spawn.BrickColor = TeamColor
@@ -22,6 +23,7 @@ function Sound(part,id)
 		end)
 	end
 end
+
 
 function updateOwner()
 	tycoonOwner = script.Parent.Owner.Value
@@ -49,7 +51,7 @@ end
 
 --Player Touched Collector processor
 deb = false
-script.Parent.Essentials.Giver.Touched:Connect(function(hit)
+script.Parent.Essentials.Giver.Touched:connect(function(hit)
 	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
 	if player ~= nil then
 		if script.Parent.Owner.Value == player then
@@ -94,13 +96,39 @@ script.Parent.Essentials.Giver.Touched:Connect(function(hit)
 	end
 end)
 
+
+function hideBillboadAndText(billboardGui, textLabel)
+	if billboardGui then
+		billboardGui.Enabled = false
+		if textLabel then
+			textLabel.TextTransparency = 1
+		end
+	end
+end
+
+function showBillboadAndText(billboardGui, textLabel)
+	if billboardGui then
+		billboardGui.Enabled = true
+		if textLabel then
+			textLabel.TextTransparency = 0
+		end
+	end
+end
+
+local chosenGamePassButton = nil
+
 script.Parent:WaitForChild("Buttons")
 for i,v in pairs(script.Parent.Buttons:GetChildren()) do
 	spawn(function()
 		if v:FindFirstChild("Head") then
-
+			local billboardGui = v.Head:FindFirstChild("BillboardGui")
+			local textLabel
+			if billboardGui then
+				textLabel = billboardGui:FindFirstChild("TextLabel")
+			end
 			local ThingMade = script.Parent.Purchases:WaitForChild(v.Object.Value)
 			if ThingMade ~= nil then
+				--print("adding------------------> purchase ",ThingMade.Name)
 				Objects[ThingMade.Name] = ThingMade:Clone()
 				ThingMade:Destroy()
 			else
@@ -108,26 +136,36 @@ for i,v in pairs(script.Parent.Buttons:GetChildren()) do
 				error('Object missing for button: '..v.Name..', button has been removed')
 				v.Head.CanCollide = false
 				v.Head.Transparency = 1
+				hideBillboadAndText(billboardGui, textLabel)
 			end
 
 			if v:FindFirstChild("Dependency") then --// if button needs something unlocked before it pops up
 				v.Head.CanCollide = false
 				v.Head.Transparency = 1
+
+				hideBillboadAndText(billboardGui, textLabel)
+
 				coroutine.resume(coroutine.create(function()
-					if script.Parent.PurchasedObjects:WaitForChild(v.Dependency.Value, 9e9) then
+					if script.Parent.PurchasedObjects:WaitForChild(v.Dependency.Value) then
 						if Settings['ButtonsFadeIn'] then
 							for i=1,20 do
 								task.wait(Settings['FadeInTime']/20)
 								v.Head.Transparency = v.Head.Transparency - 0.05
+								if textLabel then
+									textLabel.TextTransparency = textLabel.TextTransparency - 0.05
+								end
 							end
+
+							showBillboadAndText(billboardGui, textLabel)
 						end
 						v.Head.CanCollide = true
 						v.Head.Transparency = 0
+						showBillboadAndText(billboardGui, textLabel)
 					end
 				end))
 			end
 
-			v.Head.Touched:Connect(function(hit)
+			v.Head.Touched:connect(function(hit)
 				local player = game.Players:GetPlayerFromCharacter(hit.Parent)
 				if v.Head.CanCollide == true then
 					if player ~= nil then
@@ -137,10 +175,11 @@ for i,v in pairs(script.Parent.Buttons:GetChildren()) do
 									local PlayerStats = game.ServerStorage.PlayerMoney:FindFirstChild(player.Name)
 									if PlayerStats ~= nil then
 										if (v:FindFirstChild('Gamepass')) and (v.Gamepass.Value >= 1) then
-											if game:GetService("MarketplaceService"):PlayerOwnsAsset(player,v.Gamepass.Value) then
+											if game:GetService("MarketplaceService"):UserOwnsGamePassAsync(player.UserId,v.Gamepass.Value) then
 												Purchase({[1] = v.Price.Value,[2] = v,[3] = PlayerStats})
 											else
-												game:GetService('MarketplaceService'):PromptPurchase(player,v.Gamepass.Value)
+												chosenGamePassButton = v
+												game:GetService('MarketplaceService'):PromptGamePassPurchase(player,v.Gamepass.Value)
 											end
 										elseif (v:FindFirstChild('DevProduct')) and (v.DevProduct.Value >= 1) then
 											game:GetService('MarketplaceService'):PromptProductPurchase(player,v.DevProduct.Value)
@@ -161,23 +200,45 @@ for i,v in pairs(script.Parent.Buttons:GetChildren()) do
 	end)
 end
 
+
+local function onPromptGamePassPurchaseFinished(player, purchasedPassID, purchaseSuccess)
+	local PlayerStats = game.ServerStorage.PlayerMoney:FindFirstChild(player.Name)
+	if purchaseSuccess == true and chosenGamePassButton and purchasedPassID == chosenGamePassButton.Gamepass.Value then
+		print(player.Name .. " purchased the game pass with ID " .. chosenGamePassButton.Gamepass.Value)
+		Purchase({[1] = chosenGamePassButton.Price.Value,[2] = chosenGamePassButton,[3] = PlayerStats})
+	end
+end
+
+MarketplaceService.PromptGamePassPurchaseFinished:Connect(onPromptGamePassPurchaseFinished)
+
+
 function Purchase(tbl)
 	local cost = tbl[1]
 	local item = tbl[2]
 	local stats = tbl[3]
 	stats.Value = stats.Value - cost
 	Objects[item.Object.Value].Parent = script.Parent.PurchasedObjects
+	local billboardGui = item.Head:FindFirstChild("BillboardGui")
+	local textLabel
+	if billboardGui then
+		textLabel = billboardGui:FindFirstChild("TextLabel")
+	end
 	if Settings['ButtonsFadeOut'] then
 		item.Head.CanCollide = false
 		coroutine.resume(coroutine.create(function()
 			for i=1,20 do
 				task.wait(Settings['FadeOutTime']/20)
 				item.Head.Transparency = item.Head.Transparency + 0.05
+				if textLabel then
+					textLabel.TextTransparency = textLabel.TextTransparency + 0.05
+				end
 			end
+			hideBillboadAndText(billboardGui, textLabel)
 		end))
 	else
 		item.Head.CanCollide = false
 		item.Head.Transparency = 1
+		hideBillboadAndText(billboardGui, textLabel)
 	end
 end
 
@@ -194,7 +255,7 @@ function Create(tab)
 end
 
 --// This was very rushed and is inefficent; if you plan on making something like this don't use a child added listener.
-script.Parent:WaitForChild('BuyObject').ChildAdded:Connect(function(child)
+script.Parent:WaitForChild('BuyObject').ChildAdded:connect(function(child)
 	local tab = {}
 	tab[1] = child.Cost.Value
 	tab[2] = child.Button.Value
@@ -203,3 +264,5 @@ script.Parent:WaitForChild('BuyObject').ChildAdded:Connect(function(child)
 	task.wait(10)
 	child:Destroy()
 end)
+
+return Objects
