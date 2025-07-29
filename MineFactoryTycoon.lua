@@ -1,4 +1,5 @@
 if game.PlaceId == 123352919072485 then
+  print('real?')
 local localPlayer = game.Players.LocalPlayer
 local playerTycoon = nil
 local playerHRP = localPlayer.Character.HumanoidRootPart
