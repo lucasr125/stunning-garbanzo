@@ -1,3 +1,4 @@
+if game.PlaceId == 123352919072485 then
 local localPlayer = game.Players.LocalPlayer
 local playerTycoon = nil
 local playerHRP = localPlayer.Character.HumanoidRootPart
@@ -166,3 +167,4 @@ local UpgradeOresByTouchButton = TycoonTab:CreateButton({
     upgradeOresByTouch()
     end,
 })
+end
