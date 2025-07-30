@@ -2,6 +2,8 @@ local localPlayer = game.Players.LocalPlayer
 local playerHRP = localPlayer.Character.HumanoidRootPart
 local playerTycoon = nil
 local playerCash = localPlayer:WaitForChild("leaderstats").Cash
+local RunService = game:GetService("RunService")
+local heartbeatConnection
 local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 
 local settings = {
@@ -12,6 +14,8 @@ local settings = {
     autoCollectCash = false,
     autoBuyTycoonButtons = false,
     autoMineClicker = false,
+
+    updateValues = true,
 }
 
 local function getIqBadge()
@@ -105,7 +109,9 @@ local Window = Rayfield:CreateWindow({
 
 repeat task.wait(1) getPlayerTycoon() until playerTycoon ~= nil and playerTycoon:FindFirstChild("PurchasedObjects") ~= nil
 
-local TycoonTab = Window:CreateTab("Tycoon Tab", 4483362458)
+local TycoonTab = Window:CreateTab("Tycoon Tab", "banknote")
+local ConfigurationTab = Window:CreateTab("Configuration Tab", "cog")
+
 local GetIqButton = TycoonTab:CreateButton({
     Name = "Get IQ+ Badge",
     Callback = function()
@@ -130,9 +136,19 @@ local GetNeaTBadgeButton = TycoonTab:CreateButton({
     getNeaTBadge()
     end,
 })
+
+local UpdateValuesToggle = ConfigurationTab:CreateToggle({
+    Name = "Update Values",
+    CurrentValue = settings.updateValues,
+    Flag = "UpdateValuesToggle",
+    Callback = function(Value)
+    settings.updateValues = Value
+    end,
+})
+
 local AutoClickerMineToggle = TycoonTab:CreateToggle({
     Name = "Enable Mine Clicker",
-    CurrentValue = false,
+    CurrentValue = settings.autoMineClicker,
     Flag = "AutoClickerMineToggle",
     Callback = function(Value)
     settings.autoMineClicker = Value
@@ -147,7 +163,7 @@ local AutoClickerMineToggle = TycoonTab:CreateToggle({
 
 local AutoBuyToggle = TycoonTab:CreateToggle({
     Name = "Auto Buy Tycoon Buttons",
-    CurrentValue = false,
+    CurrentValue = settings.autoBuyTycoonButtons,
     Flag = "AutoBuyTycoonToggle",
     Callback = function(Value)
     settings.autoBuyTycoonButtons = Value
@@ -162,7 +178,7 @@ local AutoBuyToggle = TycoonTab:CreateToggle({
 
 local AutoCollectToggle = TycoonTab:CreateToggle({
     Name = "Auto Collect Cash",
-    CurrentValue = false,
+    CurrentValue = settings.autoCollectCash,
     Flag = "AutoCollectCashToggle",
     Callback = function(Value)
     settings.autoCollectCash = Value
@@ -175,7 +191,7 @@ local AutoCollectToggle = TycoonTab:CreateToggle({
     end,
 })
 
-local ClickerCooldownSlider = TycoonTab:CreateSlider({
+local ClickerCooldownSlider = ConfigurationTab:CreateSlider({
     Name = "Clicker Cooldown",
     Range = {0.01, 1},
     Increment = 0.01,
@@ -187,7 +203,7 @@ local ClickerCooldownSlider = TycoonTab:CreateSlider({
     end,
 })
 
-local BuyCooldownSlider = TycoonTab:CreateSlider({
+local BuyCooldownSlider = ConfigurationTab:CreateSlider({
     Name = "Buy Buttons Cooldown",
     Range = {0.01, 1},
     Increment = 0.01,
@@ -199,7 +215,7 @@ local BuyCooldownSlider = TycoonTab:CreateSlider({
     end,
 })
 
-local CollectCooldownSlider = TycoonTab:CreateSlider({
+local CollectCooldownSlider = ConfigurationTab:CreateSlider({
     Name = "Collect Cash Cooldown",
     Range = {0.01, 1},
     Increment = 0.01,
@@ -211,21 +227,23 @@ local CollectCooldownSlider = TycoonTab:CreateSlider({
     end,
 })
 
-local function updateHRP() --this is a mess deff
-local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-playerHRP = character:WaitForChild("HumanoidRootPart")
-end
+heartbeatConnection = RunService.Heartbeat:Connect(function() -- testing this shhh........
+    if settings.updateValues == true then
+        getPlayerTycoon()
+        if localPlayer and localPlayer.Character then
+            local newHRP = localPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if newHRP ~= playerHRP then
+                playerHRP = newHRP
+            end
+        else
+            playerHRP = nil
+        end
+    end
+end)
 
-localPlayer.CharacterAdded:Connect(function()
-    updateHRP()
-    getPlayerTycoon()
-  end)
-
-updateHRP()
-
-Rayfield:Notify({
+--[[Rayfield:Notify({
     Title = "Warning",
     Content = "If you die unexpectedly, you'll need to re-enable all functions manually.",
     Duration = 6.5,
     Image = "rewind",
-})
+})]]
