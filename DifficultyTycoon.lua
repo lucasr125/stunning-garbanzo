@@ -153,7 +153,7 @@ local AutoClickerMineToggle = TycoonTab:CreateToggle({
     Callback = function(Value)
     settings.autoMineClicker = Value
     if settings.autoMineClicker == true then
-        while settings.autoMineClicker then
+        while settings.autoMineClicker do
             clickOnMine()
             task.wait(settings.autoClickerCooldown)
         end
@@ -168,7 +168,7 @@ local AutoBuyToggle = TycoonTab:CreateToggle({
     Callback = function(Value)
     settings.autoBuyTycoonButtons = Value
     if settings.autoBuyTycoonButtons == true then
-        while settings.autoBuyTycoonButtons then
+        while settings.settings.autoBuyTycoonButtons do
             buyTycoonButtons()
             task.wait(settings.autoBuyTycoonButtonsCooldown)
         end
@@ -183,7 +183,7 @@ local AutoCollectToggle = TycoonTab:CreateToggle({
     Callback = function(Value)
     settings.autoCollectCash = Value
     if settings.autoCollectCash == true then
-        while settings.autoCollectCash then
+        while settings.autoCollectCash do
             collectCash()
             task.wait(settings.autoCollectCashCooldown)
         end
