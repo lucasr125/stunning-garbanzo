@@ -51,10 +51,10 @@ local function getNeaTBadge()
         firetouchinterest(playerHRP, playerTycoon.Purchases.neat.WinPad3, 0)
         firetouchinterest(playerHRP, playerTycoon.Purchases.neat.WinPad3, 1)
         task.wait(1)
-        if mouse1click then
-            mouse1click(nil, localPlayer.PlayerGui.exit.exitButton)
+        if firesignal then
+            firesignal(localPlayer.PlayerGui.exit.exitButton.MouseButton1Click) --HOW TO USE THIS SHIT
         else
-            Rayfield:Notify({Title = "Warning",Content = "Your executor doesnt supports 'mouse1click' function, you'll need click on 'Exit' button manually.",Duration = 6.5,Image = "rewind",})
+            Rayfield:Notify({Title = "Warning",Content = "Your executor doesnt supports 'firesignal' function, you'll need click on 'Exit' button manually.",Duration = 6.5,Image = "rewind",})
         end
     end
 end
