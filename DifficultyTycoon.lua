@@ -86,7 +86,6 @@ local function collectCash()
         firetouchinterest(playerHRP, playerTycoon.MainItems.CashCollector.Button, 1)
     end
 end
-print'loaded functions'
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -101,14 +100,12 @@ local Window = Rayfield:CreateWindow({
     DisableRayfieldPrompts = false,
     DisableBuildWarnings = false,
 })
-print'loaded main window'
 
 repeat task.wait(0.15) getPlayerTycoon() until playerTycoon ~= nil
 
-print'got tycoon value'
 local TycoonTab = Window:CreateTab("Tycoon Tab", "banknote")
 local ConfigurationTab = Window:CreateTab("Configuration Tab", "cog")
-print'created tabs'
+
 local GetIqButton = TycoonTab:CreateButton({
     Name = "Get IQ+ Badge",
     Callback = function()
@@ -224,7 +221,7 @@ local CollectCooldownSlider = ConfigurationTab:CreateSlider({
     end,
 })
 
-heartbeatConnection = RunService.Heartbeat:Connect(function() -- testing this shhh........
+heartbeatConnection = RunService.Heartbeat:Connect(function()
     if settings.updateValues == true then
         getPlayerTycoon()
         if localPlayer and localPlayer.Character then
@@ -237,10 +234,3 @@ heartbeatConnection = RunService.Heartbeat:Connect(function() -- testing this sh
         end
     end
 end)
-
---[[Rayfield:Notify({
-    Title = "Warning",
-    Content = "If you die unexpectedly, you'll need to re-enable all functions manually.",
-    Duration = 6.5,
-    Image = "rewind",
-})]]
