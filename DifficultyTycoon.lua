@@ -60,7 +60,7 @@ local function getNeaTBadge()
 end
 
 local function getPlayerTycoon()
-    if localPlayer.TycoonOwned and localPlayer.TycoonOwned.Value ~= nil then
+    if localPlayer:FindFirstChild("TycoonOwned") and localPlayer.TycoonOwned.Value then
         playerTycoon = localPlayer.TycoonOwned.Value
     end
 end
@@ -73,7 +73,7 @@ end
 
 local function buyTycoonButtons()
     if playerTycoon and playerTycoon:FindFirstChild("Buttons") then
-        for i, buttons in pairs(playerTycoon.Buttons:GetChildren()) do
+        for i, v in pairs(playerTycoon.Buttons:GetChildren()) do
             if v.ClassName == "Model" and v:FindFirstChild("Button") and v:FindFirstChild("Price") then
                 if v.Button.Transparency == 0 and playerCash.Value >= v.Price.Value then
                     if firetouchinterest then 
@@ -109,7 +109,7 @@ local Window = Rayfield:CreateWindow({
 })
 print'loaded main window'
 
-repeat task.wait(1) getPlayerTycoon() until playerTycoon ~= nil and playerTycoon:FindFirstChild("PurchasedObjects") ~= nil
+repeat task.wait(0.15) getPlayerTycoon() until playerTycoon ~= nil and playerTycoon:FindFirstChild("PurchasedObjects") ~= nil
 
 print'got tycoon value'
 local TycoonTab = Window:CreateTab("Tycoon Tab", "banknote")
