@@ -168,7 +168,7 @@ local AutoBuyToggle = TycoonTab:CreateToggle({
     Callback = function(Value)
     settings.autoBuyTycoonButtons = Value
     if settings.autoBuyTycoonButtons == true then
-        while settings.settings.autoBuyTycoonButtons do
+        while settings.autoBuyTycoonButtons do
             buyTycoonButtons()
             task.wait(settings.autoBuyTycoonButtonsCooldown)
         end
