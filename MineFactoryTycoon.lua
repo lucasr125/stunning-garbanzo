@@ -1,5 +1,3 @@
-if game.PlaceId == 123352919072485 then
-  print('real?')
 local localPlayer = game.Players.LocalPlayer
 local playerTycoon = nil
 local playerHRP = localPlayer.Character.HumanoidRootPart
@@ -45,7 +43,7 @@ local function upgradeOresByTouch()
     for a, ores in pairs(playerTycoon.Ores:GetChildren()) do
       if ores.ClassName == "Part" then
         for b, upgraders in pairs(playerTycoon.TmpAssets:GetChildren()) do
-          if upgraders:FindFirstChild("TouchPart") and not string.find(string.lower(upgraders.Name), "sellpart") then
+          if upgraders:FindFirstChild("TouchPart") and not string.find(string.lower(upgraders.Name), "sellpart") --[[and not string.find(string.lower(upgraders.Name), "plinko")]] then
             local tempCFrameOres = ores.CFrame
             ores.CFrame = upgraders.TouchPart.CFrame
             task.wait(0.01)
@@ -69,15 +67,29 @@ local function bringAllUpgraders()
 end
 
 local function changeConveyorVelocity()
-  if playerTycoon and playerTycoon:FindFirstChild("TmpAssets") then
-    for i, v in pairs(playerTycoon.TmpAssets:GetChildren()) do
-      if string.find(string.lower(v.Name), "conveyor") then
-        for y, parts in pairs(v:GetChildren()) do
-          parts.AssemblyLinearVelocity *= settings.conveyorVelocityMultiplier
+    if playerTycoon and playerTycoon:FindFirstChild("TmpAssets") then
+        for _, conveyor in pairs(playerTycoon.TmpAssets:GetChildren()) do
+            if string.find(string.lower(conveyor.Name), "conveyor") then
+                for _, part in pairs(conveyor:GetChildren()) do
+                    if part:IsA("BasePart") and part.AssemblyLinearVelocity then
+                        part.AssemblyLinearVelocity *= settings.conveyorVelocityMultiplier
+                    end
+                end
+            end
         end
-      end
     end
-  end
+end
+
+local function rebirth()
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Rebirth = ReplicatedStorage.Remotes.rebirthservice.Rebirth 
+Rebirth:InvokeServer()
+end
+
+local function useSpins()
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SpinWheel = ReplicatedStorage.Remotes.luckproductsservice.SpinWheel
+SpinWheel:InvokeServer()
 end
 
 local function removeGamepass()
@@ -115,7 +127,7 @@ local BuyButtonsDropdown = TycoonTab:CreateDropdown({
    Options = {"Remote","TouchInterest"},
    CurrentOption = {"Remote"},
    MultipleOptions = false,
-   Flag = "BuyButtonsFlag1",
+   Flag = "BuyButtonsFlag1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
    Callback = function(Options)
      settings.selectBuyOption = Options[1]
 end,
@@ -123,13 +135,17 @@ end,
 local BuyTycoonButtonsButton = TycoonTab:CreateButton({
     Name = "Buy All Tycoon Buttons",
     Callback = function()
+      while task.wait(2) do
     buyTycoonButtons()
+    end
     end,
 })
 local CollectCashButton = TycoonTab:CreateButton({
     Name = "Collect Cash",
     Callback = function()
+      while task.wait(2) do
     collectCash()
+    end
     end,
 })
 local BringAllUpgradersButton = TycoonTab:CreateButton({
@@ -158,7 +174,9 @@ local ChangeConveyorVelocityButton = TycoonTab:CreateButton({
 local RemoveGamepassButton = TycoonTab:CreateButton({
     Name = "Remove Gamepass Buttons",
     Callback = function()
+      while task.wait(1) do
     removeGamepass()
+    end
     end,
 })
 local UpgradeOresByTouchButton = TycoonTab:CreateButton({
@@ -167,4 +185,7 @@ local UpgradeOresByTouchButton = TycoonTab:CreateButton({
     upgradeOresByTouch()
     end,
 })
-end
+
+--workspace.Shop.ChestDisplay2.ChestPosition.ProximityPrompt
+
+--workspace.Obby.ObbyButton.MovingPart
