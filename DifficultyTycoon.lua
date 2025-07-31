@@ -50,12 +50,6 @@ local function getNeaTBadge()
         task.wait()
         firetouchinterest(playerHRP, playerTycoon.Purchases.neat.WinPad3, 0)
         firetouchinterest(playerHRP, playerTycoon.Purchases.neat.WinPad3, 1)
-        task.wait(1)
-        if firesignal then
-            firesignal(localPlayer.PlayerGui.exit.exitButton.MouseButton1Click) --HOW TO USE THIS SHIT
-        else
-            Rayfield:Notify({Title = "Warning",Content = "Your executor doesnt supports 'firesignal' function, you'll need click on 'Exit' button manually.",Duration = 6.5,Image = "rewind",})
-        end
     end
 end
 
