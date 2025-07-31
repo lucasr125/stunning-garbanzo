@@ -109,7 +109,7 @@ local Window = Rayfield:CreateWindow({
 })
 print'loaded main window'
 
-repeat task.wait(0.15) getPlayerTycoon() until playerTycoon ~= nil and playerTycoon:FindFirstChild("PurchasedObjects") ~= nil
+repeat task.wait(0.15) getPlayerTycoon() until playerTycoon ~= nil
 
 print'got tycoon value'
 local TycoonTab = Window:CreateTab("Tycoon Tab", "banknote")
