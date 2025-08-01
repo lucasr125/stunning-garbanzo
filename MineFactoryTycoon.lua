@@ -1,6 +1,8 @@
 local localPlayer = game.Players.LocalPlayer
 local playerTycoon = nil
 local playerHRP = localPlayer.Character.HumanoidRootPart
+local RunService = game:GetService("RunService")
+local heartbeatConnection
 local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 
 local settings = {
@@ -258,3 +260,17 @@ local ConveyorVelocityMultiplierSlider = ConfigurationTab:CreateSlider({
     settings.conveyorVelocityMultiplier = Value
     end,
 })
+
+heartbeatConnection = RunService.Heartbeat:Connect(function()
+    if settings.updateValues == true then
+        getPlayerTycoon()
+        if localPlayer and localPlayer.Character then
+            local newHRP = localPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if newHRP ~= playerHRP then
+                playerHRP = newHRP
+            end
+        else
+            playerHRP = nil
+        end
+    end
+end)
