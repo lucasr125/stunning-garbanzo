@@ -8,6 +8,7 @@ local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.Place
 local settings = {
   selectBuyOption = "Remote", -- Remote or TouchInterest (recommended)
   conveyorVelocityMultiplier = 2, 
+  updateValues = true,
 
   autoBuyTycoonButtons = false,
   autoCollectCash = false,
@@ -248,6 +249,10 @@ local BuyButtonsDropdown = ConfigurationTab:CreateDropdown({
      settings.selectBuyOption = Options[1]
 end,
 })
+
+local UpdateValuesToggle = ConfigurationTab:CreateToggle({Name = "Update Value",CurrentValue = settings.updateValues,Flag = "UpdateValuesToggle",Callback = function(Value)
+  settings.updateValues = Value
+end,})
 
 local ConveyorVelocityMultiplierSlider = ConfigurationTab:CreateSlider({
     Name = "Conveyor Velocity Multiplier",
