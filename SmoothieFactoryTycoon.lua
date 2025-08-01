@@ -266,7 +266,7 @@ local BuyButtonsDropdown = ConfigurationTab:CreateDropdown({
    Options = {"Upgraders","Others","Both"},
    CurrentOption = {"Upgraders"},
    MultipleOptions = false,
-   Flag = "BuyButtonsFlag1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Flag = "BuyButtonsFlag1",
    Callback = function(Options)
      settings.onlyBuyButtons = Options[1]
 end,
@@ -277,7 +277,7 @@ local EnableBlenderOptionDropdown = ConfigurationTab:CreateDropdown({
    Options = {"Remote","ProximityPrompt"},
    CurrentOption = {"ProximityPrompt"},
    MultipleOptions = false,
-   Flag = "EnableBlenderOptionFlag", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Flag = "EnableBlenderOptionFlag", 
    Callback = function(Options)
      settings.enableBlenderUsing = Options[1]
 end,
