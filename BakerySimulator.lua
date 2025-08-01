@@ -3,6 +3,18 @@ local playerName = localPlayer.Name
 local playerPlot = nil
 local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 
+local settings = {
+  autoSellProducts = false, 
+
+  autoGetIngredients = false,
+  autoPutIngredients = false,
+  autoGetProducts = false,
+
+  getIngredientsCooldown = 1,
+  putIngredientsCooldown = 0.5,
+  getProductsCooldown = 1,
+}
+
 local function getPlayerPlot()
   for i, v in pairs(workspace.Plots:GetChildren()) do
     if v:GetAttribute("Owner") == playerName then
@@ -14,8 +26,7 @@ end
 local function getIngredients()
   for i, v in pairs(workspace.Ingredients:GetChildren()) do
     if v:FindFirstChild("Ingredient_Collider") then
-      local args = { v["Ingredient_Collider"] }
-      game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("TI_0"):FireServer(unpack(args))
+      game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("TI_0"):FireServer(v["Ingredient_Collider"])
     end
   end
 end
@@ -35,10 +46,8 @@ local function startBaking()
       local ingredientsFolder = v.ConverterData.ConverterContents.Ingredients
       local totalOvenIngredients = #ingredientsFolder:GetChildren()
       if totalOvenIngredients >= maxOvenIngredients then
-        local args = { v, "Cookies" }
-        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("StartBake"):FireServer(unpack(args))
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("StartBake"):FireServer(v, "Cookies")
       end
-      task.wait()
     end
   end
 end
@@ -49,11 +58,11 @@ local function getProducts()
       local ovenProducts = v.ConverterData.ConverterContents.Products
       if #ovenProducts:GetChildren() >= 1 then
         v.ConverterData:FindFirstChild("__REMOTE"):FireServer()
-        task.wait()
-        playerPlot:FindFirstChild("Shelf"):FindFirstChild("Info"):FireServer()
+        if settings.autoSellProducts == true then
+          playerPlot:FindFirstChild("Shelf"):FindFirstChild("Info"):FireServer()
+        end
       end
     end
-    task.wait()
   end
 end
 
@@ -71,30 +80,60 @@ local Window = Rayfield:CreateWindow({
     DisableBuildWarnings = false,
 })
 
-repeat getPlayerPlot() task.wait(1) until playerPlot ~= nil
+repeat task.wait(0.15) getPlayerPlot() until playerPlot ~= nil
 
-local BakeryTab = Window:CreateTab("Bakery Tab", 4483362458)
-local GetIngredientsButton = BakeryTab:CreateButton({
-    Name = "Get Ingredients",
-    Callback = function()
-    getIngredients()
-    end,
-})
-local PutIngredientsButton = BakeryTab:CreateButton({
-    Name = "Put Ingredients",
-    Callback = function()
-    putIngredients()
-    end,
-})
+local BakeryTab = Window:CreateTab("Bakery Tab", "banknote")
+local ConfigurationTab = Window:CreateTab("Configuration Tab", "cog")
+
+local AutoGetIngredientsToggle = BakeryTab:CreateToggle({Name = "Auto Get Ingredients",CurrentValue = settings.autoGetIngredients,Flag = "GetIngredientsToggle",Callback = function(Value)
+  settings.autoGetIngredients = Value
+  if settings.autoGetIngredients == true then
+    while settings.autoGetIngredients do
+      getIngredients()
+      task.wait(settings.getIngredientsCooldown)
+    end
+  end
+end,})
+
+local PutIngredientsToggle = BakeryTab:CreateToggle({Name = "Auto Put Ingredients",CurrentValue = settings.autoPutIngredients,Flag = "PutIngredientsToggle",Callback = function(Value)
+  settings.autoPutIngredients = Value
+  if settings.autoPutIngredients == true then
+    while settings.autoPutIngredients do
+      putIngredients()
+      task.wait(settings.putIngredientsCooldown)
+    end
+  end
+end,})
+
+local GetProductsToggle = BakeryTab:CreateToggle({Name = "Auto Get Oven Products",CurrentValue = settings.autoGetProducts,Flag = "GetProductsToggle",Callback = function(Value)
+  settings.autoGetProducts = Value
+  if settings.autoGetProducts == true then
+    while settings.autoGetProducts do
+      getProducts()
+      task.wait(settings.getProductsCooldown)
+    end
+  end
+end,})
+
 local StartBakingButton = BakeryTab:CreateButton({
-    Name = "Start Baking Ingredients",
+    Name = "Start Baking Ingredients (experimental)",
     Callback = function()
     startBaking()
     end,
 })
-local GetProductsButton = BakeryTab:CreateButton({
-    Name = "Get Oven Products",
-    Callback = function()
-    getProducts()
-    end,
-})
+
+local GetIngredientsCooldownSlider = ConfigurationTab:CreateSlider({Name = "Get Ingredients Cooldown",Range = {0.01, 2},Increment = 0.01,Suffix = "s",CurrentValue = settings.getIngredientsCooldown,Flag = "GetIngredientsCooldownFlag",Callback = function(Value)
+    settings.getIngredientsCooldown = Value
+end,})
+
+local PutIngredientsCooldownSlider = ConfigurationTab:CreateSlider({Name = "Put Ingredients Cooldown",Range = {0.01, 2},Increment = 0.01,Suffix = "s",CurrentValue = settings.putIngredientsCooldown,Flag = "PutIngredientsCooldownFlag",Callback = function(Value)
+    settings.putIngredientsCooldown = Value
+end,})
+
+local GetProductsCooldownSlider = ConfigurationTab:CreateSlider({Name = "Get Products Cooldown",Range = {0.01, 2},Increment = 0.01,Suffix = "s",CurrentValue = settings.getProductsCooldown,Flag = "GetProductsCooldownFlag",Callback = function(Value)
+    settings.getProductsCooldown = Value
+end,})
+
+local AutoSellProductsToggle = ConfigurationTab:CreateToggle({Name = "Auto Sell Products",CurrentValue = settings.autoSellProducts,Flag = "AutoSellProductsToggle",Callback = function(Value)
+  settings.autoSellProducts = Value
+end,})

@@ -1,13 +1,27 @@
-if game.PlaceId == 123352919072485 then
-  print('real?')
 local localPlayer = game.Players.LocalPlayer
 local playerTycoon = nil
 local playerHRP = localPlayer.Character.HumanoidRootPart
 local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 
 local settings = {
-  selectBuyOption = "Remote", -- Remote or TouchInterest
+  selectBuyOption = "Remote", -- Remote or TouchInterest (recommended)
   conveyorVelocityMultiplier = 2, 
+
+  autoBuyTycoonButtons = false,
+  autoCollectCash = false,
+  autoRebirth = false,
+  autoUseSpins = false,
+  autoBuyChests = false,
+  autoDoObby = false,
+  autoRemoveGamepasses = false,
+
+  buyTycoonButtonsCooldown = 1,
+  collectCashCooldown = 1,
+  rebirthCooldown = 10,
+  useSpinsCooldown = 0.5,
+  buyChestsCooldown = 5,
+  doObbyCooldown = 20,
+  removeGamepassesCooldown = 0.25,
 }
 
 local function getPlayerTycoon()
@@ -69,11 +83,40 @@ local function bringAllUpgraders()
 end
 
 local function changeConveyorVelocity()
-  if playerTycoon and playerTycoon:FindFirstChild("TmpAssets") then
-    for i, v in pairs(playerTycoon.TmpAssets:GetChildren()) do
-      if string.find(string.lower(v.Name), "conveyor") then
-        for y, parts in pairs(v:GetChildren()) do
-          parts.AssemblyLinearVelocity *= settings.conveyorVelocityMultiplier
+    if playerTycoon and playerTycoon:FindFirstChild("TmpAssets") then
+        for _, conveyor in pairs(playerTycoon.TmpAssets:GetChildren()) do
+            if string.find(string.lower(conveyor.Name), "conveyor") then
+                for _, part in pairs(conveyor:GetChildren()) do
+                    if part:IsA("BasePart") and part.AssemblyLinearVelocity then
+                        part.AssemblyLinearVelocity *= settings.conveyorVelocityMultiplier
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function doRebirth()
+  game:GetService("ReplicatedStorage").Remotes.rebirthservice.Rebirth:InvokeServer()
+end
+
+local function useSpins()
+  game:GetService("ReplicatedStorage").Remotes.luckproductsservice.SpinWheel:InvokeServer()
+end
+
+local function doObby()
+  if firetouchinterest and workspace:FindFirstChild("Obby") then
+    firetouchinterest(workspace.Obby.ObbyButton.MovingPart, playerHRP, 0)
+    firetouchinterest(workspace.Obby.ObbyButton.MovingPart, playerHRP, 1)
+  end
+end
+
+local function buyChests()
+  if fireproximityprompt and workspace:FindFirstChild("Shop") then
+    for i, chests in pairs(workspace.Shop:GetChildren()) do
+      if string.find(string.lower(chests.Name), "display") then
+        if chests:FindFirstChild("ChestPosition") and chests.ChestPosition:FindFirstChild("ProximityPrompt") then
+          fireproximityprompt(chests.ChestPosition.ProximityPrompt)
         end
       end
     end
@@ -108,9 +151,92 @@ local Window = Rayfield:CreateWindow({
 
 repeat task.wait(1) getPlayerTycoon() until playerTycoon ~= nil
 
-local TycoonTab = Window:CreateTab("Tycoon Tab", 4483362458)
+local TycoonTab = Window:CreateTab("Tycoon Tab", "banknote")
+local ConfigurationTab = Window:CreateTab("Configuration Tab", "cog")
 
-local BuyButtonsDropdown = TycoonTab:CreateDropdown({
+local BuyTycoonButtonsToggle = TycoonTab:CreateToggle({Name = "Auto Buy Tycoon Buttons",CurrentValue = settings.autoBuyTycoonButtons,Flag = "BuyTycoonButtonsToggle",Callback = function(Value)
+  settings.autoBuyTycoonButtons = Value
+  if settings.autoBuyTycoonButtons == true then
+    while settings.autoBuyTycoonButtons do
+      buyTycoonButtons()
+      task.wait(settings.buyTycoonButtonsCooldown)
+    end
+  end
+end,})
+
+local CollectCashToggle = TycoonTab:CreateToggle({Name = "Auto Collect Cash",CurrentValue = settings.autoCollectCash,Flag = "CollectCashToggle",Callback = function(Value)
+  settings.autoCollectCash = Value
+  if settings.autoCollectCash == true then
+    while settings.autoCollectCash do
+      collectCash()
+      task.wait(settings.collectCashCooldown)
+    end
+  end
+end,})
+
+local RebirthToggle = TycoonTab:CreateToggle({Name = "Auto Rebirth",CurrentValue = settings.autoRebirth,Flag = "RebirthToggle",Callback = function(Value)
+  settings.autoRebirth = Value
+  if settings.autoRebirth == true then
+    while settings.autoRebirth do
+      doRebirth()
+      task.wait(settings.rebirthCooldown)
+    end
+  end
+end,})
+
+local UseSpinsToggle = TycoonTab:CreateToggle({Name = "Auto Use Spins",CurrentValue = settings.autoUseSpins,Flag = "UseSpinsToggle",Callback = function(Value)
+  settings.autoUseSpins = Value
+  if settings.autoUseSpins == true then
+    while settings.autoUseSpins do
+      useSpins()
+      task.wait(settings.useSpinsCooldown)
+    end
+  end
+end,})
+
+local BuyChestsToggle = TycoonTab:CreateToggle({Name = "Auto Buy Chests",CurrentValue = settings.autoBuyChests,Flag = "BuyChestsToggle",Callback = function(Value)
+  settings.autoBuyChests = Value
+  if settings.autoBuyChests == true then
+    while settings.autoBuyChests do
+      buyChests()
+      task.wait(settings.buyChestsCooldown)
+    end
+  end
+end,})
+
+local DoObbyToggle = TycoonTab:CreateToggle({Name = "Auto Do Obby",CurrentValue = settings.autoDoObby,Flag = "DoObbyToggle",Callback = function(Value)
+  settings.autoDoObby = Value
+  if settings.autoDoObby == true then
+    while settings.autoDoObby do
+      doObby()
+      task.wait(settings.doObbyCooldown)
+    end
+  end
+end,})
+
+local RemoveGamepassesToggle = TycoonTab:CreateToggle({Name = "Auto Remove Gamepasses Buttons",CurrentValue = settings.autoRemoveGamepasses,Flag = "RemoveGamepassesToggle",Callback = function(Value)
+  settings.autoRemoveGamepasses = Value
+  if settings.autoRemoveGamepasses == true then
+    while settings.autoRemoveGamepasses do
+      removeGamepass()
+      task.wait(settings.removeGamepassesCooldown)
+    end
+  end
+end,})
+
+local BringAllUpgradersButton = TycoonTab:CreateButton({Name = "Bring All Upgraders",Callback = function()
+  bringAllUpgraders()
+end,})
+
+local ChangeConveyorVelocityButton = TycoonTab:CreateButton({Name = "Change Conveyor Velocity",Callback = function()
+  changeConveyorVelocity()
+end,})
+
+local UpgradeOresByTouchButton = TycoonTab:CreateButton({Name = "Upgrade Ores By Touch",Callback = function()
+  upgradeOresByTouch()
+end,})
+
+local BuyButtonsDropdown = ConfigurationTab:CreateDropdown({
    Name = "Buy Buttons Option",
    Options = {"Remote","TouchInterest"},
    CurrentOption = {"Remote"},
@@ -120,25 +246,8 @@ local BuyButtonsDropdown = TycoonTab:CreateDropdown({
      settings.selectBuyOption = Options[1]
 end,
 })
-local BuyTycoonButtonsButton = TycoonTab:CreateButton({
-    Name = "Buy All Tycoon Buttons",
-    Callback = function()
-    buyTycoonButtons()
-    end,
-})
-local CollectCashButton = TycoonTab:CreateButton({
-    Name = "Collect Cash",
-    Callback = function()
-    collectCash()
-    end,
-})
-local BringAllUpgradersButton = TycoonTab:CreateButton({
-    Name = "Bring All Upgraders",
-    Callback = function()
-    bringAllUpgraders()
-    end,
-})
-local ConveyorVelocityMultiplierSlider = TycoonTab:CreateSlider({
+
+local ConveyorVelocityMultiplierSlider = ConfigurationTab:CreateSlider({
     Name = "Conveyor Velocity Multiplier",
     Range = {0.01, 5},
     Increment = 0.01,
@@ -149,22 +258,3 @@ local ConveyorVelocityMultiplierSlider = TycoonTab:CreateSlider({
     settings.conveyorVelocityMultiplier = Value
     end,
 })
-local ChangeConveyorVelocityButton = TycoonTab:CreateButton({
-    Name = "Change Conveyor Velocity",
-    Callback = function()
-    changeConveyorVelocity()
-    end,
-})
-local RemoveGamepassButton = TycoonTab:CreateButton({
-    Name = "Remove Gamepass Buttons",
-    Callback = function()
-    removeGamepass()
-    end,
-})
-local UpgradeOresByTouchButton = TycoonTab:CreateButton({
-    Name = "Upgrade Ores By Touch",
-    Callback = function()
-    upgradeOresByTouch()
-    end,
-})
-end
